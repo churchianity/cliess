@@ -173,7 +173,7 @@ int handle_move(char in[6]) {
     int target_position_file = file_to_board_index(in[3]);
 
     square* source = board[source_position_rank][source_position_file];
-    square* target = board[target_position_rank][target_position_file];
+    // square* target = board[target_position_rank][target_position_file];
 
     if (source == NULL) {
         return -3;
@@ -190,9 +190,10 @@ int main(void) {
 
     char in[6];
     do {
+        printf("\e[2J\e[;H\n\n");
         draw_board_unicode();
 
-        printf("\n");
+        printf("\n\tmake moves by typing them in coordinate notation ('e2e4', for example)\n\ttype 'help' for options.\n\n\t\t");
 
         if (fgets(in, 6, stdin) == NULL) {
             return 1;
