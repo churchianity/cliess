@@ -190,13 +190,15 @@ int rank_to_board_index(char c) {
 typedef int (*piece_move_validator)(int, int, int, int);
 
 int handle_move(char in[6]) {
-    int source_position_file = file_to_board_index(in[0]);
-    int source_position_rank = rank_to_board_index(in[1]);
-    int target_position_file = file_to_board_index(in[2]);
-    int target_position_rank = rank_to_board_index(in[3]);
+    int ix1 = file_to_board_index(in[0]);
+    int iy1  = rank_to_board_index(in[1]);
+    int ix2 = file_to_board_index(in[2]);
+    int iy2 = rank_to_board_index(in[3]);
 
-    square* source = board[source_position_file][source_position_rank];
-    // square* target = board[target_position_rank][target_position_file];
+    printf("source: %d,%d | dest: %d,%d\n", ix1, iy1, ix2, iy2);
+
+    square* source = board[ix1][iy1];
+    // square* target = board[iy2][ix2];
 
     if (source == NULL) {
         return -3;
@@ -204,18 +206,18 @@ int handle_move(char in[6]) {
 
     piece_move_validator validate = NULL;
     switch ((source->flags & ~LIGHT) & ~DARK) {
-        case PAWN: printf("pawn!\n"); break;
-        case KNIGHT: printf("knight!\n"); break;
-        case BISHOP: printf("bishop!\n"); validate = validate_bishop_move; break;
-        case ROOK: printf("rook!\n"); break;
-        case QUEEN: printf("queen!\n"); break;
-        case KING: printf("king!\n"); break;
+        case PAWN: validate = validate_pawn_move; break;
+        case KNIGHT: validate = validate_knight_move; break;
+        case BISHOP: validate = validate_bishop_move; break;
+        case ROOK: validate = validate_rook_move; break;
+        case QUEEN: validate = validate_queen_move; break;
+        case KING: validate = validate_king_move; break;
     }
 
-    printf("valid? %d\n", validate(source_position_file, source_position_rank, target_position_file, target_position_rank));
+    printf("valid? %d\n", validate(ix1, iy1, ix2, iy2));
 
-    board[target_position_file][target_position_rank] = source;
-    board[source_position_file][source_position_rank] = NULL;
+    board[ix2][iy2] = source;
+    board[ix1][iy1] = NULL;
 
     return 0;
 }
