@@ -154,24 +154,32 @@ void print_square(square* s) {
     printf("square: %d\n", s ? s->flags : 0);
 }
 
+int validate_move(int x1, int y1, int x2, int y2) {
+    if (board[x2][y2] && ((board[x1][y1]->flags | LIGHT) | DARK) == (((board[x2][y2]->flags | LIGHT) | DARK))) {
+        return 0;
+    }
 
-int validate_pawn_move(int x1, int y1, int x2, int y2) {
-    return 0;
+    return 1;
 }
 
-int validate_knight_move(int x1, int y1, int x2, int y2) { return 0; }
+
+int validate_pawn_move(int x1, int y1, int x2, int y2) {
+    return validate_move(x1, y1, x2, y2);
+}
+
+int validate_knight_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
 
 int validate_bishop_move(int x1, int y1, int x2, int y2) {
     if (+(x2 - x1) == +(y2 - y1)) {
         return 1;
     }
 
-    return 0;
+    return validate_move(x1, y1, x2, y2);
 }
 
-int validate_rook_move(int x1, int y1, int x2, int y2) { return 0; }
-int validate_queen_move(int x1, int y1, int x2, int y2) { return 0; }
-int validate_king_move(int x1, int y1, int x2, int y2) { return 0; }
+int validate_rook_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
+int validate_queen_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
+int validate_king_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
 
 int file_to_board_index(char c) {
     if (c >= 'a') {
@@ -186,7 +194,6 @@ int rank_to_board_index(char c) {
     return c - '0' - 1;
 }
 
-
 typedef int (*piece_move_validator)(int, int, int, int);
 
 int handle_move(char in[6]) {
@@ -195,29 +202,53 @@ int handle_move(char in[6]) {
     int ix2 = file_to_board_index(in[2]);
     int iy2 = rank_to_board_index(in[3]);
 
-    printf("source: %d,%d | dest: %d,%d\n", ix1, iy1, ix2, iy2);
-
     square* source = board[ix1][iy1];
-    // square* target = board[iy2][ix2];
 
     if (source == NULL) {
-        return -3;
+        return -1;
     }
 
     piece_move_validator validate = NULL;
     switch ((source->flags & ~LIGHT) & ~DARK) {
-        case PAWN: validate = validate_pawn_move; break;
-        case KNIGHT: validate = validate_knight_move; break;
-        case BISHOP: validate = validate_bishop_move; break;
-        case ROOK: validate = validate_rook_move; break;
-        case QUEEN: validate = validate_queen_move; break;
-        case KING: validate = validate_king_move; break;
+        case PAWN:      validate = validate_pawn_move; break;
+        case KNIGHT:    validate = validate_knight_move; break;
+        case BISHOP:    validate = validate_bishop_move; break;
+        case ROOK:      validate = validate_rook_move; break;
+        case QUEEN:     validate = validate_queen_move; break;
+        case KING:      validate = validate_king_move; break;
     }
 
-    printf("valid? %d\n", validate(ix1, iy1, ix2, iy2));
+    if (!validate(ix1, iy1, ix2, iy2)) {
+        return -2;
+    }
 
     board[ix2][iy2] = source;
     board[ix1][iy1] = NULL;
+
+    return 0;
+}
+
+int validate_coordinate_notation(char in[4]) {
+    for (int i = 0; i < 2; i++) {
+        switch (in[i * 2]) {
+            default: return -1;
+
+            case 'a': case 'A':
+            case 'b': case 'B':
+            case 'c': case 'C':
+            case 'd': case 'D':
+            case 'e': case 'E':
+            case 'f': case 'F':
+            case 'g': case 'G':
+            case 'h': case 'H': break;
+        }
+
+        switch (in[i * 2 + 1]) {
+            default: return -2;
+
+            case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': break;
+        }
+    }
 
     return 0;
 }
@@ -227,20 +258,22 @@ int main(void) {
 
     char in[6];
     do {
-        // printf("\033[2J\033[;H\n\n\n");
         printf("\n\n");
         draw_board_unicode();
 
-        printf("\n\tmake moves by typing them in coordinate notation ('e2e4', for example)\n\t\033[5m%lc%c\033[0m", 0x2588, 0x8);
+        printf("\n\tmake moves by typing them in non-hyphenated coordinate notation ('e2e4', for example)\n\t> \033[5m%lc%c\033[0m", 0x2588, 0x8);
 
         if (fgets(in, 6, stdin) == NULL) {
             return 1;
         }
 
+        if (validate_coordinate_notation(in) != 0) {
+            printf("\tinvalid coordinate notation.\n"); fflush(stdin); continue;
+        }
+
         switch (handle_move(in)) {
-            case -1: printf("first character should be A-H\n"); continue;
-            case -2: printf("second character should be 1-8\n"); continue;
-            case -3: printf("there isn't a piece on that square!\n"); continue;
+            case -1: printf("\tthere isn't a piece on that square!\n"); continue;
+            case -2: printf("\tyou have a piece where ur tryna go\n"); continue;
         }
 
     } while (1);
