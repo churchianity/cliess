@@ -128,19 +128,19 @@ void draw_board_unicode() {
 
             // else, print the unicode character for the piece on that square
             switch (s->flags) {
-                case PAWN | LIGHT: printf("%lc ", 0x2659); break;
-                case ROOK | LIGHT: printf("%lc ", 0x2656); break;
+                case PAWN   | LIGHT: printf("%lc ", 0x2659); break;
+                case ROOK   | LIGHT: printf("%lc ", 0x2656); break;
                 case KNIGHT | LIGHT: printf("%lc ", 0x2658); break;
                 case BISHOP | LIGHT: printf("%lc ", 0x2657); break;
-                case QUEEN | LIGHT: printf("%lc ", 0x2655); break;
-                case KING | LIGHT: printf("%lc ", 0x2654); break;
+                case QUEEN  | LIGHT: printf("%lc ", 0x2655); break;
+                case KING   | LIGHT: printf("%lc ", 0x2654); break;
 
-                case PAWN | DARK: printf("%lc ", 0x265F); break;
-                case ROOK | DARK: printf("%lc ", 0x265C); break;
+                case PAWN   | DARK: printf("%lc ", 0x265F); break;
+                case ROOK   | DARK: printf("%lc ", 0x265C); break;
                 case KNIGHT | DARK: printf("%lc ", 0x265E); break;
                 case BISHOP | DARK: printf("%lc ", 0x265D); break;
-                case QUEEN | DARK: printf("%lc ", 0x265B); break;
-                case KING | DARK: printf("%lc ", 0x265A); break;
+                case QUEEN  | DARK: printf("%lc ", 0x265B); break;
+                case KING   | DARK: printf("%lc ", 0x265A); break;
             }
         }
 
@@ -168,7 +168,9 @@ int validate_pawn_move(int x1, int y1, int x2, int y2) {
     return validate_move(x1, y1, x2, y2);
 }
 
-int validate_knight_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
+int validate_knight_move(int x1, int y1, int x2, int y2) {
+    return validate_move(x1, y1, x2, y2);
+}
 
 int validate_bishop_move(int x1, int y1, int x2, int y2) {
     if (+(x2 - x1) != +(y2 - y1)) {
@@ -178,9 +180,17 @@ int validate_bishop_move(int x1, int y1, int x2, int y2) {
     return validate_move(x1, y1, x2, y2);
 }
 
-int validate_rook_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
-int validate_queen_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
-int validate_king_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
+int validate_rook_move(int x1, int y1, int x2, int y2) {
+    return validate_move(x1, y1, x2, y2);
+}
+
+int validate_queen_move(int x1, int y1, int x2, int y2) {
+    return validate_move(x1, y1, x2, y2);
+}
+
+int validate_king_move(int x1, int y1, int x2, int y2) {
+    return validate_move(x1, y1, x2, y2);
+}
 
 int file_to_board_index(char c) {
     if (c >= 'a') {
