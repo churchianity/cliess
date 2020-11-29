@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <locale.h>
 
 
@@ -108,15 +109,15 @@ void draw_board_unicode() {
 
         for (int j = 0; j < 8; j++) {
             // reset the color settings
-            printf("\e[0m");
+            printf("\033[0m");
 
             square* s = board[j][7 - i];
 
             // color the background of the squares
             if ((i + j + 1) % 2 == 0) {
-                printf("\e[0;100m");
+                printf("\033[0;100m");
             } else {
-                printf("\e[0;107m");
+                printf("\033[0;107m");
             }
 
             // fill in the blanks
@@ -143,7 +144,7 @@ void draw_board_unicode() {
             }
         }
 
-        printf("\e[0m\n");
+        printf("\033[0m\n");
     }
 
     printf("\t  a b c d e f g h\n");
@@ -153,7 +154,26 @@ void print_square(square* s) {
     printf("square: %d\n", s ? s->flags : 0);
 }
 
-int rank_to_board_index(char c) {
+
+int validate_pawn_move(int x1, int y1, int x2, int y2) {
+    return 0;
+}
+
+int validate_knight_move(int x1, int y1, int x2, int y2) { return 0; }
+
+int validate_bishop_move(int x1, int y1, int x2, int y2) {
+    if (+(x2 - x1) == +(y2 - y1)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int validate_rook_move(int x1, int y1, int x2, int y2) { return 0; }
+int validate_queen_move(int x1, int y1, int x2, int y2) { return 0; }
+int validate_king_move(int x1, int y1, int x2, int y2) { return 0; }
+
+int file_to_board_index(char c) {
     if (c >= 'a') {
         return c - 'a';
 
@@ -162,25 +182,40 @@ int rank_to_board_index(char c) {
     }
 }
 
-int file_to_board_index(char c) {
+int rank_to_board_index(char c) {
     return c - '0' - 1;
 }
 
-int handle_move(char in[6]) {
-    int source_position_rank = rank_to_board_index(in[0]);
-    int source_position_file = file_to_board_index(in[1]);
-    int target_position_rank = rank_to_board_index(in[2]);
-    int target_position_file = file_to_board_index(in[3]);
 
-    square* source = board[source_position_rank][source_position_file];
+typedef int (*piece_move_validator)(int, int, int, int);
+
+int handle_move(char in[6]) {
+    int source_position_file = file_to_board_index(in[0]);
+    int source_position_rank = rank_to_board_index(in[1]);
+    int target_position_file = file_to_board_index(in[2]);
+    int target_position_rank = rank_to_board_index(in[3]);
+
+    square* source = board[source_position_file][source_position_rank];
     // square* target = board[target_position_rank][target_position_file];
 
     if (source == NULL) {
         return -3;
     }
 
-    board[target_position_rank][target_position_file] = source;
-    board[source_position_rank][source_position_file] = NULL;
+    piece_move_validator validate = NULL;
+    switch ((source->flags & ~LIGHT) & ~DARK) {
+        case PAWN: printf("pawn!\n"); break;
+        case KNIGHT: printf("knight!\n"); break;
+        case BISHOP: printf("bishop!\n"); validate = validate_bishop_move; break;
+        case ROOK: printf("rook!\n"); break;
+        case QUEEN: printf("queen!\n"); break;
+        case KING: printf("king!\n"); break;
+    }
+
+    printf("valid? %d\n", validate(source_position_file, source_position_rank, target_position_file, target_position_rank));
+
+    board[target_position_file][target_position_rank] = source;
+    board[source_position_file][source_position_rank] = NULL;
 
     return 0;
 }
@@ -190,10 +225,11 @@ int main(void) {
 
     char in[6];
     do {
-        printf("\e[2J\e[;H\n\n");
+        // printf("\033[2J\033[;H\n\n\n");
+        printf("\n\n");
         draw_board_unicode();
 
-        printf("\n\tmake moves by typing them in coordinate notation ('e2e4', for example)\n\ttype 'help' for options.\n\n\t\t");
+        printf("\n\tmake moves by typing them in coordinate notation ('e2e4', for example)\n\t\033[5m%lc%c\033[0m", 0x2588, 0x8);
 
         if (fgets(in, 6, stdin) == NULL) {
             return 1;
