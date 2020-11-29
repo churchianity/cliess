@@ -154,6 +154,7 @@ void print_square(square* s) {
     printf("square: %d\n", s ? s->flags : 0);
 }
 
+// all pieces can't move to a square if another piece of the same color occupies it
 int validate_move(int x1, int y1, int x2, int y2) {
     if (board[x2][y2] && ((board[x1][y1]->flags | LIGHT) | DARK) == (((board[x2][y2]->flags | LIGHT) | DARK))) {
         return 0;
@@ -170,8 +171,8 @@ int validate_pawn_move(int x1, int y1, int x2, int y2) {
 int validate_knight_move(int x1, int y1, int x2, int y2) { return validate_move(x1, y1, x2, y2); }
 
 int validate_bishop_move(int x1, int y1, int x2, int y2) {
-    if (+(x2 - x1) == +(y2 - y1)) {
-        return 1;
+    if (+(x2 - x1) != +(y2 - y1)) {
+        return 0;
     }
 
     return validate_move(x1, y1, x2, y2);
@@ -196,9 +197,11 @@ int rank_to_board_index(char c) {
 
 typedef int (*piece_move_validator)(int, int, int, int);
 
+int turn = 1;
+
 int handle_move(char in[6]) {
     int ix1 = file_to_board_index(in[0]);
-    int iy1  = rank_to_board_index(in[1]);
+    int iy1 = rank_to_board_index(in[1]);
     int ix2 = file_to_board_index(in[2]);
     int iy2 = rank_to_board_index(in[3]);
 
@@ -208,14 +211,21 @@ int handle_move(char in[6]) {
         return -1;
     }
 
+    if ((turn == 0) && (source->flags & DARK) == 0) {
+        return -3;
+
+    } else if ((turn == 1) && (source->flags & LIGHT) == 0) {
+        return -4;
+    }
+
     piece_move_validator validate = NULL;
     switch ((source->flags & ~LIGHT) & ~DARK) {
-        case PAWN:      validate = validate_pawn_move; break;
-        case KNIGHT:    validate = validate_knight_move; break;
-        case BISHOP:    validate = validate_bishop_move; break;
-        case ROOK:      validate = validate_rook_move; break;
-        case QUEEN:     validate = validate_queen_move; break;
-        case KING:      validate = validate_king_move; break;
+        case PAWN:   validate = validate_pawn_move; break;
+        case KNIGHT: validate = validate_knight_move; break;
+        case BISHOP: validate = validate_bishop_move; break;
+        case ROOK:   validate = validate_rook_move; break;
+        case QUEEN:  validate = validate_queen_move; break;
+        case KING:   validate = validate_king_move; break;
     }
 
     if (!validate(ix1, iy1, ix2, iy2)) {
@@ -273,7 +283,9 @@ int main(void) {
 
         switch (handle_move(in)) {
             case -1: printf("\tthere isn't a piece on that square!\n"); continue;
-            case -2: printf("\tyou have a piece where ur tryna go\n"); continue;
+            case -2: printf("\tinvalid move\n"); continue;
+            case -3: case -4: printf("\tnot your turn."); continue;
+            default: turn = !turn; break;
         }
 
     } while (1);
