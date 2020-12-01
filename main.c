@@ -299,6 +299,7 @@ int main(void) {
         printf("\n\n");
         draw_board_unicode();
 
+
         printf("\n\tmake moves by typing them in non-hyphenated coordinate notation ('e2e4', for example)\n\t> \033[5m%lc%c\033[0m", 0x2588, 0x8);
 
         if (fgets(in, 6, stdin) == NULL) {
