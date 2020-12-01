@@ -150,8 +150,26 @@ void draw_board_unicode() {
     printf("\t  a b c d e f g h\n");
 }
 
-void print_square(square* s) {
-    printf("square: %d\n", s ? s->flags : 0);
+char* flags_to_string(int flags) {
+    switch (flags) {
+        case PAWN   | LIGHT: return "white pawn";
+        case ROOK   | LIGHT: return "white rook";
+        case KNIGHT | LIGHT: return "white knight";
+        case BISHOP | LIGHT: return "white bishop";
+        case QUEEN  | LIGHT: return "white queen";
+        case KING   | LIGHT: return "white king";
+
+        case PAWN   | DARK: return "black pawn";
+        case ROOK   | DARK: return "black root";
+        case KNIGHT | DARK: return "black knight";
+        case BISHOP | DARK: return "black bishop";
+        case QUEEN  | DARK: return "black queen";
+        case KING   | DARK: return "black king";
+    }
+}
+
+void print_square(int x, int y, square* s) {
+    printf("%d,%d - %s", x, y, flags_to_string(s->flags));
 }
 
 // all pieces can't move to a square if another piece of the same color occupies it
